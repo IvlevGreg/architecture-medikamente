@@ -1,0 +1,35 @@
+@startuml DFD-StaffPortals-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_recep, "Ресепшен")
+External(e_doctor, "Врач")
+External(e_acc, "Бухгалтер")
+External(e_cashier, "Кассир")
+
+Process("Порталы сотрудников + IDP (RBAC/ABAC)")
+    SubProcess(p_auth, "6.0", "SSO/IDP (OIDC) → сессия")
+    SubProcess(p_ops, "6.1", "Операции по ролям (минимизация выдачи)")
+    DataStore(ds_crm, "CRM [PII]")
+    DataStore(ds_med, "Медкартотека [MedSecret]")
+    DataStore(ds_fin, "Фин.реестр [конфид.]")
+
+DataFlows()
+' Аутентификация
+Flow(e_recep, p_auth, "Логин [TLS]")
+Flow(e_doctor, p_auth, "Логин [TLS]")
+Flow(e_acc, p_auth, "Логин [TLS]")
+Flow(e_cashier, p_auth, "Логин [TLS]")
+
+' Рабочие операции
+Flow(p_ops, ds_crm, "Чтение/запись по ролям")
+Flow(p_ops, ds_med, "Доступ к результатам по пациенту [врач]")
+Flow(p_ops, ds_fin, "Просмотр оплат/отчётов [кассир/бух]")
+
+' Связь ролей с операциями (логически через p_ops)
+Flow(e_recep, p_ops, "Запись/перенос приёма (мин.данные)")
+Flow(e_doctor, p_ops, "Назначения/просмотр анализов")
+Flow(e_acc, p_ops, "Проводки/отчёты")
+Flow(e_cashier, p_ops, "Оплаты/чеки")
+endDfd()
+@enduml

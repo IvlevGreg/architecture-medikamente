@@ -1,0 +1,28 @@
+@startuml DFD-Appointment-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_patient, "Пациент (веб/моб ЛК)")
+External(e_notify, "SMS/Push/E-mail шлюз")
+Process("Портал/ЛК + Сервис расписания")
+    SubProcess(p_reg, "1.0", "Регистрация/Логин (OAuth2/OIDC, PKCE)")
+    SubProcess(p_sched, "1.1", "Поиск слота/создание записи")
+    SubProcess(p_cons, "1.2", "Согласие на обработку ПДн")
+    DataStore(ds_crm, "CRM/Пациентские профили [PII]")
+    DataStore(ds_cal, "Расписание/слоты")
+DataFlows()
+' Аутентификация и профиль
+Flow(e_patient, p_reg, "Учётные данные → токен [TLS]")
+Flow(p_reg, ds_crm, "Обновление профиля/контактов [PII]")
+' Запись
+Flow(e_patient, p_sched, "Параметры записи (врач/дата)")
+Flow(p_sched, ds_cal, "Резерв слота")
+Flow(p_sched, ds_crm, "Линк запись↔пациент")
+' Согласия
+Flow(e_patient, p_cons, "Подпись согласия [PII]")
+Flow(p_cons, ds_crm, "Сохранение статуса согласия")
+' Уведомления
+Flow(p_sched, e_notify, "Напоминания пациенту/врачу [мин.данные]")
+Flow_Back(e_patient, p_sched, "Подтверждение/отмена")
+endDfd()
+@enduml

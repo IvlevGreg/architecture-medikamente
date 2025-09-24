@@ -1,0 +1,30 @@
+@startuml DFD-MedRecords-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_lab, "Лаборатория (API)")
+External(e_doctor, "Врач")
+Process("Интеграционный слой (NiFi) + Медкартотека")
+    SubProcess(p_order, "2.0", "Создание направления (минимизация полей)")
+    SubProcess(p_ingest, "2.1", "Приём результата из Лабы [TLS, provenance]")
+    SubProcess(p_tag, "2.2", "Тегирование/классификация (PII/MedSecret)")
+    SubProcess(p_view, "2.3", "Просмотр/выдача результатов по ролям")
+    DataStore(ds_cards, "Медкартотека [MedSecret, шифрование]")
+    DataStore(ds_docs, "Хранилище документов (PDF/JPG) [шифр]")
+DataFlows()
+' Направление
+Flow(e_doctor, p_order, "Параметры пациента/исследования [минимизация]")
+Flow(p_order, e_lab, "Заказ/направление [TLS]")
+' Инжест результатов
+Flow(e_lab, p_ingest, "Результат (JSON/PDF) [TLS]")
+Flow(p_ingest, p_tag, "Нормализация + метаданные")
+Flow(p_tag, ds_cards, "Структурированные поля результата [MedSecret]")
+Flow(p_tag, ds_docs, "Вложения (PDF/JPG) [шифр]")
+' Доступ врача/пациента через Систему
+External(e_portal, "Портал/ЛК")
+Flow(e_doctor, p_view, "Запрос по пациенту (роль Врач)")
+Flow(e_portal, p_view, "Запрос пациента (доступ только к себе)")
+Flow(p_view, ds_cards, "Чтение метаданных")
+Flow(p_view, ds_docs, "Чтение/выдача файла")
+endDfd()
+@enduml
