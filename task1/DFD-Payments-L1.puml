@@ -1,0 +1,21 @@
+@startuml DFD-Payments-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_cash, "Эквайринг/ККМ")
+External(e_cass, "Кассир")
+Process("Платёжный шлюз + 1С:Бухгалтерия + CRM")
+    SubProcess(p_init, "3.0", "Инициация оплаты (сумма/услуга)")
+    SubProcess(p_fiscal, "3.1", "Фискализация/чек")
+    SubProcess(p_post, "3.2", "Постинг оплаты в 1С/CRM")
+    DataStore(ds_fin, "Фин.реестр/чеки [конфид.]")
+    DataStore(ds_crm, "CRM договора/связки [PII]")
+DataFlows()
+Flow(e_cass, p_init, "Создать оплату по заказу")
+Flow(p_init, e_cash, "Транзакция [TLS]")
+Flow(e_cash, p_fiscal, "Статус/чек [TLS]")
+Flow(p_fiscal, ds_fin, "Сохранить чек")
+Flow(p_post, ds_crm, "Линковка оплаты↔пациент/услуга")
+Flow(p_fiscal, p_post, "Итог оплаты/ид транзакции")
+endDfd()
+@enduml

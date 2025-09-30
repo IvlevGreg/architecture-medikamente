@@ -1,0 +1,19 @@
+@startuml DFD-Inventory-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_vendor, "Поставщик")
+External(e_keeper, "Сотрудник склада")
+Process("1С:Торговля и склад ↔ 1С:Бухгалтерия")
+    SubProcess(p_po, "4.0", "Закупка/приход")
+    SubProcess(p_inv, "4.1", "Списание/движение")
+    DataStore(ds_stock, "Складской учёт (ТМЦ)")
+    DataStore(ds_fin, "Бухгалтерский учёт")
+DataFlows()
+Flow(e_vendor, p_po, "Счёт/накладная")
+Flow(p_po, ds_stock, "Приход")
+Flow(p_po, ds_fin, "Проводки")
+Flow(e_keeper, p_inv, "Операции движения")
+Flow(p_inv, ds_stock, "Обновление остатков")
+endDfd()
+@enduml

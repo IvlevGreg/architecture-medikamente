@@ -1,0 +1,20 @@
+@startuml DFD-DataLake-L1
+!includeurl https://raw.githubusercontent.com/ArmanAvanesyan/DFD-PlantUML/main/DFD_Level_1.puml
+
+startDfd(Simple)
+External(e_ba, "BA/Data Science (чтец витрин)")
+Process("ETL/ELT (NiFi/dbt) + Каталог метаданных")
+    SubProcess(p_ext, "5.0", "Экстракция из CRM/медкарт/1С [локал.]")
+    SubProcess(p_mask, "5.1", "Деперсонализация/маскирование [PII]")
+    SubProcess(p_lineage, "5.2", "Тегирование + lineage (PII/MedSecret)")
+    SubProcess(p_mart, "5.3", "Формирование витрин BI/ML")
+    DataStore(ds_lake, "Озеро данных (сырые зоны) [шифр]")
+    DataStore(ds_marts, "BI/ML витрины (обезличено)")
+DataFlows()
+Flow(p_ext, ds_lake, "Сырые данные (минимум полей)")
+Flow(p_ext, p_mask, "Наборы для аналитики")
+Flow(p_mask, p_lineage, "Обезличенные поля + метки")
+Flow(p_lineage, ds_marts, "Наборы витрин")
+Flow(e_ba, ds_marts, "Доступ только к витринам (ro)")
+endDfd()
+@enduml
